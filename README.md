@@ -1,5 +1,13 @@
 # download-manifest.py
 
+This is a simple script to download manifests from Docker hub. It is done via this v2 registry API call:
+
+```
+/v2/{repository}/manifests/{tag}
+```
+
+Sample usage:
+
 ```
 $ ./download-manifest.py registry
 {
