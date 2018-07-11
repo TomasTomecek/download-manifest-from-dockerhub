@@ -7,6 +7,7 @@ import requests
 
 login_template = "https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repository}:pull"
 get_manifest_template = "https://registry.hub.docker.com/v2/{repository}/manifests/{tag}"
+accept_types = "application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.docker.distribution.manifestv2+json"
 
 
 def pretty_print(d):
@@ -23,7 +24,7 @@ def download_manifest_for_repo(repo, tag):
     token = response_json["token"]
     response = requests.get(
         get_manifest_template.format(repository=repo, tag=tag),
-        headers={"Authorization": "Bearer {}".format(token)},
+        headers={"Authorization": "Bearer {}".format(token), "accept": accept_types},
         json=True
     )
     manifest = response.json()
