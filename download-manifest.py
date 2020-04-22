@@ -1,17 +1,19 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+""" script to download manifests from Docker hub """
 import sys
 import json
 
 import requests
 
 
-login_template = "https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repository}:pull"
-get_manifest_template = "https://registry.hub.docker.com/v2/{repository}/manifests/{tag}"
-accept_types = "application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.docker.distribution.manifestv2+json"
+LOGIN_URL = "https://auth.docker.io/token?service=registry.docker.io&scope=repository:{repository}:pull"
+MANIFEST_URL = "https://registry.hub.docker.com/v2/{repository}/manifests/{tag}"
+ACCEPT_TYPES = "application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.docker.distribution.manifestv2+json"
 
 
-def pretty_print(d):
-    print(json.dumps(d, indent=2))
+def pretty_print(obj):
+    """ print indented JSONified version of given object """
+    print(json.dumps(obj, indent=2))
 
 
 def download_manifest_for_repo(repo, tag):
@@ -19,13 +21,13 @@ def download_manifest_for_repo(repo, tag):
     repo: string, repository (e.g. 'library/fedora')
     tag:  string, tag of the repository (e.g. 'latest')
     """
-    response = requests.get(login_template.format(repository=repo), json=True)
+    response = requests.get(LOGIN_URL.format(repository=repo), json=True)
     response_json = response.json()
     token = response_json["token"]
     response = requests.get(
-        get_manifest_template.format(repository=repo, tag=tag),
-        headers={"Authorization": "Bearer {}".format(token), "accept": accept_types},
-        json=True
+        MANIFEST_URL.format(repository=repo, tag=tag),
+        headers={"Authorization": "Bearer {}".format(token), "accept": ACCEPT_TYPES},
+        json=True,
     )
     manifest = response.json()
     if not response.status_code == requests.codes.ok:
@@ -34,10 +36,15 @@ def download_manifest_for_repo(repo, tag):
 
 
 def main():
+    """ entrypoint for command-line execution, returns exit code """
     repos = sys.argv[1:]
     if not repos:
-        print("Usage: {} <[namespace/]repository[:tag]> [<[namespace/]repository[:tag]>...]".format(sys.argv[0]) +
-              "\nExample: {} fedora:23".format(sys.argv[0]))
+        print(
+            (
+                "Usage: {self} <[namespace/]repository[:tag]> [...]\n"
+                "Example: {self} fedora:23"
+            ).format(self=sys.argv[0])
+        )
         return 1
     for repo_tag in repos:
         if ":" in repo_tag:
@@ -52,4 +59,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
